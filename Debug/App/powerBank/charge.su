@@ -1,0 +1,2 @@
+charge.c:9:6:Init_BAT_Charge	16	static
+charge.c:38:6:controlPowerBankCharge	16	static

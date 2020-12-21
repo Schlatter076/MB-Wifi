@@ -1,0 +1,2 @@
+main.c:23:6:HSI_SetSysClock	24	static
+main.c:102:5:main	16	static

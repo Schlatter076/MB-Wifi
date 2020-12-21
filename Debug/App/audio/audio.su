@@ -1,0 +1,2 @@
+audio.c:9:6:Init_Audio	16	static
+audio.c:27:6:play_audio	24	static

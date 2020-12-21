@@ -1,0 +1,7 @@
+motor.c:9:6:Init_Motor	16	static
+motor.c:48:6:motor_reset	16	static
+motor.c:67:6:motor_run	16	static
+motor.c:104:6:popUP_powerBank	24	static
+motor.c:203:6:popUP_All	24	static
+motor.c:229:6:motor_stop	16	static
+motor.c:266:4:IsMotorArravalsOrigin	16	static

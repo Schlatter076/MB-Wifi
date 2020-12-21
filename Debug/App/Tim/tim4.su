@@ -1,0 +1,2 @@
+tim4.c:28:6:TIM4_Init	32	static
+tim4.c:60:6:TIM4_IRQHandler	8	static
