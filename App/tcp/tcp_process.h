@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include "bat_usart.h"
 #include "tim4.h"
+#include "STMFlash.h"
 
 typedef struct
 {
@@ -77,9 +78,14 @@ void systemPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
 void orderPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
 		struct STRUCT_USART_Params *params);
 void modifyLockSTA(struct STRUCT_USART_Fram *fram);
+void commonHeart(USART_TypeDef* USARTx);
 void forceHeart(ENUM_Internet_TypeDef internet,
-		struct STRUCT_USART_Params *params);
+		struct STRUCT_USART_Params *params, ENUM_tcpUP_TypeDef upCmd);
 void responseReset(void);
+void reportPortStatuChanged(u8 port, USART_TypeDef* USARTx);
+void request4Register(USART_TypeDef* USARTx);
+void setWifiSsidAndPwd(USART_TypeDef* USARTx, struct STRUCT_USART_Fram *fram);
+void getRegisterParams(struct STRUCT_USART_Fram *fram);
 
 
 #endif /* _TCP_PROCESS_H_ */

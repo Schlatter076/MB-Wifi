@@ -82,15 +82,7 @@ void UART4_IRQHandler(void)
 	{
 		UART4->SR; //先读SR，再读DR
 		UART4->DR;
-		if (WIFI_Fram.IsNotInAT)
-		{
-//			for (int i = 0; i < WIFI_Fram.InfBit.Length; i++)
-//			{
-//				printf("%02X", WIFI_Fram.Data[i]);
-//			}
-//			printf("\r\n");
-			WIFI_Fram.InfBit.Length = 0; //从头开始接收数据
-		}
+
 		if (strstr((const char *) WIFI_Fram.Data, "CLOSED")) //连接断掉
 		{
 			printf("*******CLOSED*****\r\n");

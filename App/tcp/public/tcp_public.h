@@ -27,26 +27,30 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 	char *base64Str;
 	unsigned char ServerData[BASE64_BUF_LEN];
 	unsigned char *Server_Command[2];
-	volatile unsigned char IsNotInAT;
-	volatile u8 linkedClosed;
-	volatile u8 allowProcessServerData;
-	volatile u8 init;
-	volatile u8 registerSuccess;
-	volatile u8 firstStatuHeartNotSucc;
-	volatile u8 allowCheckChange;
-	volatile u8 serverStatuCnt;
+	u8 linkedClosed;
+	u8 allowProcessServerData;
+	u8 init;
+	u8 registerSuccess;
+	u8 firstStatuHeartNotSucc;
+	u8 serverStatuCnt;
+	u8 allowHeart;
+	u8 forceHeart_32;
+	u8 forceHeart_90;
+	u8 AT_test_STA;
+	u8 connect_STA;
 	union
 	{
-		__IO u16 InfAll;
+		u16 InfAll;
 		struct
 		{
-			__IO u16 Length :15;                               // 14:0
-			__IO u16 FinishFlag :1;                                // 15
+			u16 Length :15;                               // 14:0
+			u16 FinishFlag :1;                                // 15
 		} InfBit;
 	};
 };
 extern struct STRUCT_USART_Fram F4G_Fram;
 extern struct STRUCT_USART_Fram WIFI_Fram;
+extern struct STRUCT_USART_Fram USART1_Fram;
 extern volatile u8 CurrentInternet;
 
 extern struct STRUCT_USART_Params
@@ -55,24 +59,28 @@ extern struct STRUCT_USART_Params
 	unsigned char ccid[24];
 	unsigned char cops;
 	u8 rssi; //信号强度
-	volatile u8 STHeart;
-	volatile u8 reqSTheart;
-	volatile u8 sysTC;
-	volatile u8 ddTC;
-	char cmd[2];
-	volatile int port;
+	int port;
 	char dd[20];
-	volatile u8 play;
+	u8 play;
 	u8 statuCode[6];
 	u8 currentStatuCode[6];
 	char htCMD[2];
-	volatile u8 checkPBst;
-	volatile u8 getLongitude;
-	volatile u8 popAll;
-	volatile u8 setID;
-	volatile u8 process4G;
-	volatile u8 processWIFI;
+	u8 checkPBst;
+	u8 process4G;
+	u8 processWIFI;
 } TCP_Params;
+
+extern struct RegisterFram	  //定义一个全局串口数据帧的处理结构体
+{
+	char key[16];
+	u8 motor_TCtime;
+	u8 motor_HTtime;
+	char ip[30];
+	u8 needConfirmParams;
+	u8 heartTime;
+	u8 statuHeartTime;
+	char port[6];
+} RegisterParams;
 
 typedef enum
 {
@@ -96,12 +104,13 @@ typedef enum
 
 typedef enum
 {
-	In4G = 0, InWifi,
+	In4G = 1, InWifi = 2,
 } ENUM_Internet_TypeDef;
 
 void _USART_printf(USART_TypeDef * USARTx, char * Data, ...);
 bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
 		char *ack2, u32 time);
 bool AT_Test(ENUM_Internet_TypeDef internet);
+void mySplit(struct STRUCT_USART_Fram *fram, char *delims);
 
 #endif /* _TCP_PUBLIC_H_ */

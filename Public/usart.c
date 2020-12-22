@@ -9,10 +9,6 @@
 #include "L74HC595.h"
 #include "tim4.h"
 
-struct USART_Fram USART1_Record_Struct =
-{ 0 };
-struct RegisterFram RegisterParams =
-{ 0 };
 //*/
 /*******************************************************************************
  * 函 数 名         : USART1_Init
@@ -91,6 +87,7 @@ void USART1_Init(u32 bound)
 	strcpy(RegisterParams.ip, tem);
 	tem = strtok(NULL, ":");
 	strncpy(RegisterParams.port, tem, 5);
+	RegisterParams.port[5] = '\0';
 	if (strncmp("13401", RegisterParams.port, 5) == 0)
 	{
 		printf("port is right!\r\n");
@@ -118,36 +115,36 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 	{
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
 		r = USART_ReceiveData(USART1);  //(USART1->DR);	//读取接收到的数据
-		if (USART1_Record_Struct.InfBit.FramLength < (RX_BUF_MAX_LEN - 1))
+		if (USART1_Fram.InfBit.Length < (TCP_MAX_LEN - 1))
 		{
-			USART1_Record_Struct.RX_BUF[USART1_Record_Struct.InfBit.FramLength++] =
+			USART1_Fram.Data[USART1_Fram.InfBit.Length++] =
 					r;
 		}
 		if (r == ']')
 		{
-			WDeviceID = strtok(USART1_Record_Struct.RX_BUF, "]");
+			WDeviceID = strtok((char *)USART1_Fram.Data, "]");
 			printf("write DeviceID=%s\r\n", WDeviceID);
 			STMFLASH_Write(EEPROM_ADDR, (u16 *) WDeviceID, 8);
 //			STMFLASH_Read(EEPROM_ADDR, (u16 *) RDeviceID, 8);
 //			printf("成功写入设备编号:%s\r\n", RDeviceID);
-			USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 		}
 		else if (r == '$')
 		{
-			res = strtok(USART1_Record_Struct.RX_BUF, "$");
+			res = strtok((char *)USART1_Fram.Data, "$");
 			Send_AT_Cmd(In4G, res, "OK", NULL, 500);
-			USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 		}
 		else if (r == '#')
 		{
-			res = strtok(USART1_Record_Struct.RX_BUF, "#");
+			res = strtok((char *)USART1_Fram.Data, "#");
 			controlPowerbank(hexStr2Byte(res));
-			USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 		}
 		else if (r == '%')
 		{
-			res = strtok(USART1_Record_Struct.RX_BUF, "%");
-			USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+			res = strtok((char *)USART1_Fram.Data, "%");
+			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 			if (*res == 'l') //亮某个灯
 			{
 				mot = *(res + 1) - 0x30;
@@ -180,8 +177,8 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 		}
 		else if (r == '@')
 		{
-			res = strtok(USART1_Record_Struct.RX_BUF, "@");
-			USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+			res = strtok((char *)USART1_Fram.Data, "@");
+			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 			if (*res == 't')
 			{
 				mot = *(res + 1) - 0x30;
@@ -191,14 +188,9 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 			else if (*res == '&')
 			{
 				res++;
-//				statu_heart("90");
-//				for(int i = 0; i <6; i++)
-//				{
-//					checkPowerbankStatus(i, usart1TestBuf);
-//				}
 				checkPowerbankStatus((u8) atoi(res) - 1, usart1TestBuf);
 				//communicationTest(atoi(res) - 1);
-				USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+				USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 			}
 			else if (*res == 'e')
 			{
@@ -208,7 +200,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 			{
 				res++;
 				base64_encode((const unsigned char *) res, buf);
-				F4G_sendStr(buf);
+				TCP_sendStr(USART2, buf);
 			}
 			else if (*res == 'f')
 			{
@@ -232,7 +224,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 			{
 				STMFLASH_Read(EEPROM_ADDR, (u16 *) RDeviceID, 8);
 				printf("read DeviceID=%s\r\n", RDeviceID);
-				USART1_Record_Struct.InfBit.FramLength = 0; //重新开始接收新数据
+				USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 			}
 			else if (*res == 'x')
 			{

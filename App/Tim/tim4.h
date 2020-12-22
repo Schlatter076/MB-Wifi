@@ -11,11 +11,13 @@
 #include "bat_usart.h"
 #include "charge.h"
 #include "usart_4G.h"
+#include "wifi.h"
 #include "L74HC595.h"
 #include "L74hc165.h"
 #include "motor.h"
 #include "string.h"
 #include "led.h"
+#include "tcp_process.h"
 
 
 volatile u8 allowTCSamePort;
@@ -25,4 +27,5 @@ volatile u8 allowModuleUpdate;
 
 
 void TIM4_Init(u16 per,u16 psc);
+void Task_Init(u16 per, u16 psc);
 #endif /* TIM_TIM4_H_ */

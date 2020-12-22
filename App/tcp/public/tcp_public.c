@@ -12,6 +12,9 @@ struct STRUCT_USART_Fram WIFI_Fram =
 { 0 };
 struct STRUCT_USART_Fram F4G_Fram =
 { 0 };
+struct RegisterFram RegisterParams =
+{ 0 };
+struct STRUCT_USART_Fram USART1_Fram = {0};
 volatile u8 CurrentInternet = In4G;
 
 static char *itoa(int value, char *string, int radix)
@@ -170,7 +173,7 @@ bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
 		USARTx = UART4;
 	}
 
-	USART_Fram->IsNotInAT = 0; //AT指令进行中
+	//USART_Fram->IsNotInAT = 0; //AT指令进行中
 
 	USART_Fram->InfBit.Length = 0;	//从新开始接收新的数据包
 	_USART_printf(USARTx, "%s\r\n", cmd);
@@ -227,4 +230,26 @@ bool AT_Test(ENUM_Internet_TypeDef internet)
 	printf("test %s fail!\r\n", module);
 	myfree(module);
 	return 0;
+}
+
+/**
+ * 将str通过delims进行分割,所得的字符串填充在res中
+ * @fram
+ * @delims 分隔符
+ */
+void mySplit(struct STRUCT_USART_Fram *fram, char *delims) {
+	char *result = (char *)fram->DeData;
+	u8 inx = 0;
+	while (inx < 2) {
+		result++;
+		if (*result == ',') {
+			++inx;
+		}
+	}
+	result++;
+	memcpy(fram->ServerData, result, BASE64_BUF_LEN);
+	result = strtok((char *)fram->DeData, delims);
+	fram->Server_Command[0] = (unsigned char *) result;
+	result = strtok( NULL, delims);
+	fram->Server_Command[1] = (unsigned char *) result;
 }

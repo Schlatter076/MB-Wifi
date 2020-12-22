@@ -7,12 +7,12 @@
 #include "STMFlash.h"
 
 char *WDeviceID = NULL;
-char RDeviceID[8];
+char RDeviceID[9] = {0};
 
-char *WVersion;
-char RVersion[20];
+char *WVersion = NULL;
+char RVersion[21] = {0};
 
-char APPServer[100];
+char APPServer[101] = {0};
 
 unsigned char IgnoreLock[6] = {0};
 
@@ -131,41 +131,74 @@ void Test_Write(u32 WriteAddr, u16 WriteData)
 
 void WriteDeviceID(void)
 {
-	STMFLASH_Write(EEPROM_ADDR, (u16 *) WDeviceID, 8);
+	STMFLASH_Write(EEPROM_ADDR, (u16 *) WDeviceID, 4);
 }
 void ReadDeviceID(void)
 {
-	STMFLASH_Read(EEPROM_ADDR, (u16 *) RDeviceID, 8);
+	STMFLASH_Read(EEPROM_ADDR, (u16 *) RDeviceID, 4);
+	RDeviceID[8] = '\0';
 }
 
 void writeVersion(void)
 {
-	STMFLASH_Write(VERSION_ADDR, (u16 *) WVersion, 20);
+	STMFLASH_Write(VERSION_ADDR, (u16 *) WVersion, 10);
 }
 
 void ReadVersion(void)
 {
-	STMFLASH_Read(VERSION_ADDR, (u16 *) RVersion, 20);
+	STMFLASH_Read(VERSION_ADDR, (u16 *) RVersion, 10);
+	RVersion[20] = '\0';
 }
 
 void WriteAPPServer(char *server)
 {
-	STMFLASH_Write(APP_SERVER_ADDR, (u16 *) server, 100);
+	STMFLASH_Write(APP_SERVER_ADDR, (u16 *) server, 50);
 }
 
 void ReadAPPServer(void)
 {
-	STMFLASH_Read(APP_SERVER_ADDR, (u16 *) APPServer, 100);
+	STMFLASH_Read(APP_SERVER_ADDR, (u16 *) APPServer, 50);
+	APPServer[100] = '\0';
 }
 
 void WriteIgnoreLock(u8 inx, u8 sta)
 {
 	 IgnoreLock[inx] = sta;
-	 STMFLASH_Write(IGNORE_LOCK_ADDR, (u16 *) IgnoreLock, 6);
+	 STMFLASH_Write(IGNORE_LOCK_ADDR, (u16 *) IgnoreLock, 3);
 }
 
 u8 ReadIgnoreLock(u8 inx)
 {
-	STMFLASH_Read(IGNORE_LOCK_ADDR, (u16 *) IgnoreLock, 6);
+	STMFLASH_Read(IGNORE_LOCK_ADDR, (u16 *) IgnoreLock, 3);
 	return IgnoreLock[inx];
+}
+
+void WriteWifiSsid(void)
+{
+	STMFLASH_Write(WIFI_SSID_ADDR, (u16 *) ParamsOfWifiJoinAPInit.ssid, 50);
+}
+void ReadWifiSsid(void)
+{
+	STMFLASH_Read(WIFI_SSID_ADDR, (u16 *) ParamsOfWifiJoinAPInit.ssid, 50);
+	ParamsOfWifiJoinAPInit.ssid[99] = '\0'; //添加结束符
+}
+
+void WriteWifiPwd(void)
+{
+	STMFLASH_Write(WIFI_PWD_ADDR, (u16 *) ParamsOfWifiJoinAPInit.pwd, 50);
+}
+void ReadWifiPwd(void)
+{
+	STMFLASH_Read(WIFI_PWD_ADDR, (u16 *) ParamsOfWifiJoinAPInit.pwd, 50);
+	ParamsOfWifiJoinAPInit.pwd[99] = '\0'; //添加结束符
+}
+
+void WriteWifiFlag(void)
+{
+	STMFLASH_Write(WIFI_FLAG_ADDR, (u16 *) 0x5746, 1);
+}
+
+void ReadWifiFlag(u16 *flag)
+{
+	STMFLASH_Read(WIFI_FLAG_ADDR, flag, 1);
 }

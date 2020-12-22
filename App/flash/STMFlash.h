@@ -9,7 +9,8 @@
 #define FLASH_STMFLASH_H_
 
 #include "stm32f10x.h"
-#include "string.h"
+#include <string.h>
+#include "tcp_process.h"
 
 #define STM32_FLASH_SIZE 256 	 		//所选STM32的FLASH容量大小(单位为K)
 #define STM32_FLASH_WREN 1              //使能FLASH写入(0，不使能;1，使能)
@@ -28,13 +29,17 @@
 #define IGNORE_LOCK_ADDR  0x0803FF00
 extern unsigned char IgnoreLock[6];
 
+#define WIFI_FLAG_ADDR  0x0803FF10
+#define WIFI_SSID_ADDR  0x0803FF12
+#define WIFI_PWD_ADDR   0x0803FF80
+
 extern char *WDeviceID;
-extern char RDeviceID[8];
+extern char RDeviceID[9];
 
 extern char *WVersion;
-extern char RVersion[20];
+extern char RVersion[21];
 
-extern char APPServer[100];
+extern char APPServer[101];
 
 u16 STMFLASH_ReadHalfWord(u32 faddr);		  //读出半字
 void STMFLASH_WriteLenByte(u32 WriteAddr, u32 DataToWrite, u16 Len);//指定地址开始写入指定长度的数据
@@ -53,5 +58,12 @@ void ReadAPPServer(void);
 
 void WriteIgnoreLock(u8 inx, u8 sta);
 u8 ReadIgnoreLock(u8 inx);
+
+void WriteWifiSsid(void);
+void ReadWifiSsid(void);
+void WriteWifiPwd(void);
+void ReadWifiPwd(void);
+void WriteWifiFlag(void);
+void ReadWifiFlag(u16 *flag);
 
 #endif /* FLASH_STMFLASH_H_ */
