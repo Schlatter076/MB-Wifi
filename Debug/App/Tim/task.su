@@ -1,3 +1,0 @@
-task.c:9:6:TIM2_IRQHandler	8	static
-task.c:20:6:TIM3_IRQHandler	8	static
-task.c:29:6:TIM5_IRQHandler	8	static

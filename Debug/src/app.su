@@ -1,2 +1,0 @@
-core_cm3.h:1107:22:NVIC_SystemReset	4	static
-app.c:12:6:RunApp	16	static
