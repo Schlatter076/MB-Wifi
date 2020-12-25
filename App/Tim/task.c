@@ -6,26 +6,6 @@
  */
 #include "tim4.h"
 
-void TIM2_IRQHandler(void)
-{
-	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
-	{
-		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-
-		TIM_Cmd(TIM2, DISABLE);
-		module4GPowerOn();
-	}
-}
-
-void TIM3_IRQHandler(void)
-{
-	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
-	{
-		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-
-	}
-}
-
 void TIM5_IRQHandler(void)
 {
 	if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET)
@@ -39,20 +19,32 @@ void TIM5_IRQHandler(void)
 			F4G_Fram.forceHeart_32 = 0;
 			forceHeart(In4G, &TCP_Params, UP_AllPortsSTA);
 		}
+		else if (WIFI_Fram.forceHeart_32 == 1)
+		{
+			WIFI_Fram.forceHeart_32 = 0;
+			forceHeart(InWifi, &TCP_Params, UP_AllPortsSTA);
+		}
 		if (F4G_Fram.forceHeart_90 == 1)
 		{
 			F4G_Fram.forceHeart_90 = 0;
+			WIFI_Fram.forceHeart_90 = 0;
 			forceHeart(In4G, &TCP_Params, UP_StatuHeart);
+		}
+		else if (WIFI_Fram.forceHeart_90 == 1)
+		{
+			WIFI_Fram.forceHeart_90 = 0;
+			forceHeart(InWifi, &TCP_Params, UP_StatuHeart);
 		}
 		if (TCP_Params.process4G == 1)
 		{
 			TCP_Params.process4G = 0;
+			TCP_Params.processWIFI = 0; //只处理一个指令
 			ProcessServerCmd(In4G, &F4G_Fram, &TCP_Params);
 		}
-		if (TCP_Params.processWIFI == 1)
+		else if (TCP_Params.processWIFI == 1)
 		{
 			TCP_Params.processWIFI = 0;
-			ProcessServerCmd(InWifi, &F4G_Fram, &TCP_Params);
+			ProcessServerCmd(InWifi, &WIFI_Fram, &TCP_Params);
 		}
 		TIM_Cmd(TIM5, ENABLE);
 	}

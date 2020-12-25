@@ -16,7 +16,7 @@
 #include "malloc.h"
 #include "stdarg.h"
 
-#define TCP_MAX_LEN 1024		  //最大接收缓存字节数
+#define TCP_MAX_LEN 640		  //最大接收缓存字节数
 #define BASE64_BUF_LEN 512
 
 struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
@@ -27,31 +27,29 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 	char *base64Str;
 	unsigned char ServerData[BASE64_BUF_LEN];
 	unsigned char *Server_Command[2];
-	u8 linkedClosed;
-	u8 allowProcessServerData;
-	u8 init;
-	u8 registerSuccess;
-	u8 firstStatuHeartNotSucc;
-	u8 serverStatuCnt;
-	u8 allowHeart;
-	u8 forceHeart_32;
-	u8 forceHeart_90;
-	u8 AT_test_STA;
-	u8 connect_STA;
+	__IO u8 linkedClosed;
+	__IO u8 allowProcessServerData;
+	__IO u8 init;
+	__IO u8 registerSuccess;
+	__IO u8 firstStatuHeartNotSucc;
+	__IO u8 serverStatuCnt;
+	__IO u8 allowHeart;
+	__IO u8 forceHeart_32;
+	__IO u8 forceHeart_90;
+	__IO u8 AT_test_OK;
 	union
 	{
-		u16 InfAll;
+		__IO u16 InfAll;
 		struct
 		{
-			u16 Length :15;                               // 14:0
-			u16 FinishFlag :1;                                // 15
+			__IO u16 Length :15;                               // 14:0
+			__IO u16 FinishFlag :1;                                // 15
 		} InfBit;
 	};
 };
 extern struct STRUCT_USART_Fram F4G_Fram;
 extern struct STRUCT_USART_Fram WIFI_Fram;
 extern struct STRUCT_USART_Fram USART1_Fram;
-extern volatile u8 CurrentInternet;
 
 extern struct STRUCT_USART_Params
 {
@@ -61,13 +59,13 @@ extern struct STRUCT_USART_Params
 	u8 rssi; //信号强度
 	int port;
 	char dd[20];
-	u8 play;
+	__IO u8 play;
 	u8 statuCode[6];
 	u8 currentStatuCode[6];
-	char htCMD[2];
-	u8 checkPBst;
-	u8 process4G;
-	u8 processWIFI;
+	__IO u8 checkPBst;
+	__IO u8 process4G;
+	__IO u8 processWIFI;
+	__IO u8 wifiParamModified;
 } TCP_Params;
 
 extern struct RegisterFram	  //定义一个全局串口数据帧的处理结构体

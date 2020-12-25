@@ -33,8 +33,8 @@ extern unsigned char IgnoreLock[6];
 #define WIFI_SSID_ADDR  0x0803FF12
 #define WIFI_PWD_ADDR   0x0803FF80
 
-extern char *WDeviceID;
-extern char RDeviceID[9];
+__IO extern char *WDeviceID;
+__IO extern char RDeviceID[9];
 
 extern char *WVersion;
 extern char RVersion[21];
@@ -64,6 +64,6 @@ void ReadWifiSsid(void);
 void WriteWifiPwd(void);
 void ReadWifiPwd(void);
 void WriteWifiFlag(void);
-void ReadWifiFlag(u16 *flag);
+u16 ReadWifiFlag(void);
 
 #endif /* FLASH_STMFLASH_H_ */

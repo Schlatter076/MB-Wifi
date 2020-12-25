@@ -28,8 +28,8 @@ void USART2_Init(uint32_t bound)
 
 	//Usart2 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	//抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		//子优先级0
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	//抢占优先级0
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;		//子优先级0
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
 
@@ -67,8 +67,30 @@ void F4G_Init(u32 bound)
 	F4G_Fram.allowProcessServerData = 0;
 	F4G_Fram.allowHeart = 0;
 	F4G_Fram.registerSuccess = 0;
-	//开启4G模块上电任务
-	TIM_Cmd(TIM2, ENABLE);
+	do
+	{
+		GPIO_SetBits(GPIOC, PKEY_4G);
+		delay_ms(1000);
+		delay_ms(1000);
+		delay_ms(1000);
+		delay_ms(1000);
+		GPIO_ResetBits(GPIOC, PKEY_4G);
+		//复位4G模块
+		GPIO_SetBits(GPIOC, RST_4G);
+		delay_ms(1100);
+		GPIO_ResetBits(GPIOC, RST_4G);
+		delay_ms(500);
+
+		F4G_ExitUnvarnishSend();
+		Send_AT_Cmd(In4G, "AT+CIPCLOSE", "OK", NULL, 500);
+		Send_AT_Cmd(In4G, "AT+RSTSET", "OK", NULL, 500);
+	} while (!AT_Test(In4G));
+	F4G_Fram.AT_test_OK = 1;
+	if (F4G_Fram.AT_test_OK != 0)
+	{
+		//获取4G模块参数信息
+		getModuleMes();
+	}
 }
 
 void USART2_IRQHandler(void)
@@ -92,31 +114,7 @@ void USART2_IRQHandler(void)
 		//收到服务器端发回的数据
 		if (ucCh == ']' && (bool) strchr((const char *) F4G_Fram.Data, '['))
 		{
-			char *res = (char *) F4G_Fram.Data;
-			F4G_Fram.serverStatuCnt = 0;
-			while (*res != '[')
-			{
-				res++;
-			}
-			while (*res == '[')
-				res++;
-
-			F4G_Fram.base64Str = strtok(res, "]");
-
-//			printf("before Decryption=%s\r\n",
-//					F4G_Fram_Record_Struct.base64Str);
-			base64_decode((const char *) F4G_Fram.base64Str,
-					(unsigned char *) F4G_Fram.DeData);
-			printf("after Decryption=%s\r\n", F4G_Fram.DeData);
-			//split(F4G_Fram_Record_Struct.DeData, ",");
-			memset(F4G_Fram.Data, '\0', TCP_MAX_LEN);
-			F4G_Fram.InfBit.Length = 0;
-			//F4G_Fram.InfBit.FinishFlag = 1;
-			if (F4G_Fram.allowProcessServerData == 1)
-			{
-				mySplit(&F4G_Fram, ",");
-				TCP_Params.process4G = 1;
-			}
+			module4G_callback();
 		}
 	}
 	if (USART_GetFlagStatus(USART2, USART_FLAG_ORE) != RESET)
@@ -126,35 +124,53 @@ void USART2_IRQHandler(void)
 	}
 }
 /**
+ * 4G模块回调函数
+ */
+void module4G_callback(void)
+{
+	int DecryptionLen = 0; //排除空心跳
+	char *cnt_p = NULL;
+	char *res = (char *) F4G_Fram.Data;
+	F4G_Fram.serverStatuCnt = 0;  //与服务器建立保活计数器清零
+	while (*res != '[')
+	{
+		res++;
+	}
+	while (*res == '[')
+		res++;
+
+	cnt_p = res;
+	while (*cnt_p != ']')
+	{
+		cnt_p++;
+		DecryptionLen++;
+	}
+
+	F4G_Fram.base64Str = strtok(res, "]");
+	//			printf("before Decryption=%s\r\n",
+	//					F4G_Fram.base64Str);
+	base64_decode((const char *) F4G_Fram.base64Str,
+			(unsigned char *) F4G_Fram.DeData);
+	printf(">>%s\r\n", F4G_Fram.DeData);
+	memset(F4G_Fram.Data, '\0', TCP_MAX_LEN);
+	F4G_Fram.InfBit.Length = 0;
+	//F4G_Fram.InfBit.FinishFlag = 1;
+	if (F4G_Fram.allowProcessServerData == 1 && DecryptionLen > 1)
+	{
+		mySplit(&F4G_Fram, ",");
+		TCP_Params.process4G = 1;
+	}
+}
+/**
  * 模块重新上电联网
  */
 void module4GPowerOn(void)
 {
-	//开机
-	do
-	{
-		GPIO_SetBits(GPIOC, PKEY_4G);
-		delay_ms(1000);
-		delay_ms(1000);
-		delay_ms(1000);
-		delay_ms(1000);
-		GPIO_ResetBits(GPIOC, PKEY_4G);
-		//复位4G模块
-		GPIO_SetBits(GPIOC, RST_4G);
-		delay_ms(1100);
-		GPIO_ResetBits(GPIOC, RST_4G);
-		delay_ms(500);
-
-		F4G_ExitUnvarnishSend();
-		Send_AT_Cmd(In4G, "AT+CIPCLOSE", "OK", NULL, 500);
-		Send_AT_Cmd(In4G, "AT+RSTSET", "OK", NULL, 500);
-	} while (!AT_Test(In4G));
-
-	//获取4G模块参数信息
-	getModuleMes();
+	F4G_Fram.init = 1;
+	F4G_Fram.allowProcessServerData = 0;
+	F4G_Fram.allowHeart = 0;
+	F4G_Fram.registerSuccess = 0;
 	ConnectToServerBy4G(RegisterParams.ip, RegisterParams.port);
-	F4G_Fram.allowProcessServerData = 1;
-	request4Register(USART2);
 }
 
 /**
@@ -165,46 +181,47 @@ void module4GPowerOn(void)
  */
 bool ConnectToServerBy4G(char* addr, char* port)
 {
+	u8 cnt = 0;
 	char *p = mymalloc(100);
 	sprintf(p, "AT+CIPSTART=\"TCP\",\"%s\",%s", addr, port);
-	do
+	while (cnt < 4)
 	{
-		while (!Send_AT_Cmd(In4G, "AT+CIPSHUT", "SHUT OK", NULL, 500))
-			;
-		while (!Send_AT_Cmd(In4G, "AT+CREG?", "OK", NULL, 500))
-			;
-		while (!Send_AT_Cmd(In4G, "AT+CGATT?", "OK", NULL, 500))
-			;
-//		while (!Send_AT_Cmd(In4G, "AT+CIPMUX=0", "OK", NULL, 500))
-//			; //单链接模式
-//		while (!Send_AT_Cmd(In4G, "AT+CIPQSEND=1", "OK", NULL, 500))
-//			; //快传模式
+		cnt++;
+		Send_AT_Cmd(In4G, "AT+CIPSHUT", "SHUT OK", NULL, 500);
+		Send_AT_Cmd(In4G, "AT+CREG?", "OK", NULL, 500);
+		Send_AT_Cmd(In4G, "AT+CGATT?", "OK", NULL, 500);
 		//1.设置模式为TCP透传模式
-		while (!Send_AT_Cmd(In4G, "AT+CIPMODE=1", "OK", NULL, 500))
-			;
+		Send_AT_Cmd(In4G, "AT+CIPMODE=1", "OK", NULL, 500);
 		if (TCP_Params.cops == '3')
 		{
-			while (!Send_AT_Cmd(In4G, "AT+CSTT=cmiot", "OK",
-			NULL, 1800))
-				;
+			Send_AT_Cmd(In4G, "AT+CSTT=cmiot", "OK", NULL, 1800);
 		}
 		else if (TCP_Params.cops == '6')
 		{
-			while (!Send_AT_Cmd(In4G, "AT+CSTT=UNIM2M.NJM2MAPN", "OK", NULL,
-					1800))
-				;
+			Send_AT_Cmd(In4G, "AT+CSTT=UNIM2M.NJM2MAPN", "OK", NULL, 1800);
 		}
 		else if (TCP_Params.cops == '9')
 		{
-			while (!Send_AT_Cmd(In4G, "AT+CSTT=CTNET", "OK", NULL, 1800))
-				;
+			Send_AT_Cmd(In4G, "AT+CSTT=CTNET", "OK", NULL, 1800);
 		}
-		while (!Send_AT_Cmd(In4G, "AT+CIICR", "OK", NULL, 500))
-			;
+		Send_AT_Cmd(In4G, "AT+CIICR", "OK", NULL, 500);
 		Send_AT_Cmd(In4G, "AT+CIFSR", "OK", NULL, 500);
-	} while (!Send_AT_Cmd(In4G, p, "CONNECT", "ALREADY CONNECT", 1800));
+		Send_AT_Cmd(In4G, p, "CONNECT", NULL, 1800);
+		F4G_ExitUnvarnishSend(); //退出透传
+		if (Send_AT_Cmd(In4G, "AT+CIPSTATUS", "CONNECT OK", NULL, 1800))
+		{
+			break;
+		}
+	};
 	myfree(p);
-	return 1;
+	if (cnt < 4)
+	{
+		Send_AT_Cmd(In4G, "ATO", "CONNECT", NULL, 500);
+		F4G_Fram.allowProcessServerData = 1;
+		request4Register(USART2);
+		return 1;
+	}
+	return 0;
 }
 /***********************以下开始为与服务器通信业务代码部分*************************************/
 void getModuleMes(void)
@@ -263,7 +280,7 @@ void getModuleMes(void)
 
 void F4G_ExitUnvarnishSend(void)
 {
-	delay_ms(1000);
+	delay_ms(1500);
 	F4G_USART("+++");
-	delay_ms(500);
+	delay_ms(1000);
 }

@@ -21,7 +21,6 @@
 #include "bat_usart.h"
 #include "audio.h"
 #include "motor.h"
-#include "app.h"
 #include "tcp_process.h"
 
 #define TCPServer_IP    "server.dayitc.com"
@@ -37,6 +36,7 @@
 
 bool ConnectToServerBy4G(char* addr, char* port);
 void USART2_Init(uint32_t rate);
+void module4G_callback(void);
 void module4GPowerOn(void);
 void F4G_Init(u32 bound);
 void getModuleMes(void);

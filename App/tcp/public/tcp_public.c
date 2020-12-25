@@ -15,7 +15,6 @@ struct STRUCT_USART_Fram F4G_Fram =
 struct RegisterFram RegisterParams =
 { 0 };
 struct STRUCT_USART_Fram USART1_Fram = {0};
-volatile u8 CurrentInternet = In4G;
 
 static char *itoa(int value, char *string, int radix)
 {

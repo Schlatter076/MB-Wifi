@@ -135,6 +135,12 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 			Send_AT_Cmd(In4G, res, "OK", NULL, 500);
 			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
 		}
+		else if(r == '~')
+		{
+			//http://119.23.38.148/
+			res = strtok((char *)USART1_Fram.Data, "~");
+			WriteAPPServer(res);
+		}
 		else if (r == '#')
 		{
 			res = strtok((char *)USART1_Fram.Data, "#");

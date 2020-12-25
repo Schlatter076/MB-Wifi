@@ -44,7 +44,8 @@ typedef enum
 	DOWN_RecivedOrderPopupPowerbank = 42,
 	DOWN_VoiceBroadcast = 71,
 	DOWN_PopupAllPowerbanks = 99,
-	DOWN_IgnoreLock = 77
+	DOWN_IgnoreLock = 77,
+	DOWN_SetID = 12
 } ENUM_tcpDOWN_TypeDef;
 
 typedef enum
@@ -84,7 +85,7 @@ void forceHeart(ENUM_Internet_TypeDef internet,
 void responseReset(void);
 void reportPortStatuChanged(u8 port, USART_TypeDef* USARTx);
 void request4Register(USART_TypeDef* USARTx);
-void setWifiSsidAndPwd(USART_TypeDef* USARTx, struct STRUCT_USART_Fram *fram);
+void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram);
 void getRegisterParams(struct STRUCT_USART_Fram *fram);
 
 

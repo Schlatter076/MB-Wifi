@@ -1,4 +1,4 @@
- /*
+/*
  * wifi.c
  *
  *  Created on: 2020年10月26日
@@ -9,9 +9,6 @@
 #if defined ( __CC_ARM   )
 #pragma anon_unions
 #endif
-
-volatile u16 UART4_Read_len = 0;
-;
 
 void UART4_Init(u32 bound)
 {
@@ -52,9 +49,8 @@ void UART4_Init(u32 bound)
 	USART_Init(UART4, &USART_InitStructure); //初始化串口4
 
 	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE); //开启串口接受和总线空闲中断
-	USART_ITConfig(UART4, USART_IT_IDLE, ENABLE);
+	//USART_ITConfig(UART4, USART_IT_IDLE, ENABLE);
 	USART_ITConfig(UART4, USART_IT_ORE, ENABLE); //开启串口溢出中断
-
 	USART_Cmd(UART4, ENABLE);                    //使能串口4
 }
 
@@ -77,35 +73,10 @@ void UART4_IRQHandler(void)
 			memset(WIFI_Fram.Data, 0, TCP_MAX_LEN);
 			WIFI_Fram.InfAll = 0;
 		}
-	}
-	if (USART_GetITStatus(UART4, USART_IT_IDLE) != RESET)  //数据帧接收完毕
-	{
-		UART4->SR; //先读SR，再读DR
-		UART4->DR;
-
-		if (strstr((const char *) WIFI_Fram.Data, "CLOSED")) //连接断掉
+		//收到服务器端发回的数据
+		if (ucCh == ']' && (bool) strchr((const char *) WIFI_Fram.Data, '['))
 		{
-			printf("*******CLOSED*****\r\n");
-			WIFI_Fram.linkedClosed = 1;
-		}
-		char *ptr = strstr((const char *) WIFI_Fram.Data, "+IPD"); //是否接收到服务器传来的数据
-		int len = 0;
-		if (ptr != NULL)
-		{
-			while (*ptr != ',')
-			{
-				ptr++;
-			}
-			ptr++;
-			len = atoi(ptr);
-			while (*ptr != ':')
-			{
-				ptr++;
-			}
-			ptr++;
-			memcpy(WIFI_Fram.DeData, ptr, len);
-			WIFI_Fram.InfBit.FinishFlag = 1;
-			UART4_Read_len = 0;
+			wifi_callback();
 		}
 	}
 	if (USART_GetITStatus(UART4, USART_FLAG_ORE) != RESET)
@@ -132,16 +103,66 @@ void WIFI_Init(u32 bound)
 	GPIO_Init(WIFI_RST_Pin_Port, &GPIO_InitStructure);
 
 	UART4_Init(bound);
-	WIFI_CH_PD_Pin_SetH; //使能
-	do
-	{
-		WIFI_RST_Pin_SetL;
-		delay_ms(1000);
-		delay_ms(1000);
-		WIFI_RST_Pin_SetH;
-		delay_ms(100);
-	} while (!AT_Test(InWifi));
+
+	GPIO_SetBits(WIFI_CH_PD_Pin_Port, WIFI_CH_PD_Pin); //使能
+	GPIO_ResetBits(WIFI_RST_Pin_Port, WIFI_RST_Pin);
+	delay_ms(1000);
+	delay_ms(1000);
+	GPIO_SetBits(WIFI_RST_Pin_Port, WIFI_RST_Pin);
+	delay_ms(100);
+	WIFI_Fram.AT_test_OK = AT_Test(InWifi);
 }
+
+void wifi_callback(void)
+{
+	int DecryptionLen = 0; //排除空心跳
+	char *cnt_p = NULL;
+	char *res = (char *) WIFI_Fram.Data;
+	WIFI_Fram.serverStatuCnt = 0;  //与服务器建立保活计数器清零
+	while (*res != '[')
+	{
+		res++;
+	}
+	while (*res == '[')
+		res++;
+
+	cnt_p = res;
+	while (*cnt_p != ']')
+	{
+		cnt_p++;
+		DecryptionLen++;
+	}
+
+	WIFI_Fram.base64Str = strtok(res, "]");
+	//			printf("before Decryption=%s\r\n",
+	//					WIFI_Fram.base64Str);
+	base64_decode((const char *) WIFI_Fram.base64Str,
+			(unsigned char *) WIFI_Fram.DeData);
+	printf("Wifi>>%s\r\n", WIFI_Fram.DeData);
+	memset(WIFI_Fram.Data, '\0', TCP_MAX_LEN);
+	WIFI_Fram.InfBit.Length = 0;
+	//WIFI_Fram.InfBit.FinishFlag = 1;
+	if (WIFI_Fram.allowProcessServerData == 1 && DecryptionLen > 1)
+	{
+		mySplit(&WIFI_Fram, ",");
+		TCP_Params.processWIFI = 1;
+	}
+}
+
+void wifiPowerOn(void)
+{
+	WIFI_Fram.init = 1;
+	WIFI_Fram.allowProcessServerData = 0;
+	WIFI_Fram.allowHeart = 0;
+	WIFI_Fram.registerSuccess = 0;
+	if (ConnectToServerByWIFI(RegisterParams.ip, RegisterParams.port))
+	{
+		WIFI_Fram.allowProcessServerData = 1;
+		TCP_Params.wifiParamModified = 0;
+		request4Register(UART4);
+	}
+}
+
 //选择wifi模块的工作模式
 // enumMode：工作模式
 //返回1：选择成功 0：选择失败
@@ -195,7 +216,7 @@ bool WIFI_Enable_MultipleId(FunctionalState enumEnUnvarnishTx)
 //ComNum：服务器端口字符串
 //id：模块连接服务器的ID
 //返回1：连接成功 0：连接失败
-bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, int ComNum,
+bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, char* ComNum,
 		ENUM_ID_NO_TypeDef id)
 {
 	char *cStr = mymalloc(100);
@@ -205,11 +226,11 @@ bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, int ComNum,
 	switch (enumE)
 	{
 	case enumTCP:
-		sprintf(cStr, "\"%s\",\"%s\",%d", "TCP", ip, ComNum);
+		sprintf(cStr, "\"%s\",\"%s\",%s", "TCP", ip, ComNum);
 		break;
 
 	case enumUDP:
-		sprintf(cStr, "\"%s\",\"%s\",%d", "UDP", ip, ComNum);
+		sprintf(cStr, "\"%s\",\"%s\",%s", "UDP", ip, ComNum);
 		break;
 
 	default:
@@ -258,7 +279,6 @@ bool WIFI_SendString(FunctionalState enumEnUnvarnishTx, char * pStr,
 		bRet = true;
 
 	}
-
 	else
 	{
 		if (ucId < 5)
@@ -272,9 +292,7 @@ bool WIFI_SendString(FunctionalState enumEnUnvarnishTx, char * pStr,
 
 		bRet = Send_AT_Cmd(InWifi, pStr, "SEND OK", 0, 1000);
 	}
-
 	return bRet;
-
 }
 
 //wifi模块退出透传模式
@@ -307,14 +325,46 @@ u8 WIFI_Get_LinkStatus(void)
 	return 0;
 }
 
-bool ConnectToServerByWIFI(char* addr, int port)
+bool ConnectToServerByWIFI(char* addr, char* port)
 {
+	u8 cnt = 0;
+	ReadWifiSsid();
+	ReadWifiPwd();
 	WIFI_Net_Mode_Choose(STA);
-	Send_AT_Cmd(InWifi, "AT+GMR", "OK", NULL, 500);
-	while (!WIFI_JoinAP("ChinaNet-mPRv", "7qfe3pqt"))
-		;
-	WIFI_Enable_MultipleId(DISABLE);
-	while (!WIFI_Link_Server(enumTCP, addr, port, Single_ID_0))
-		;
-	return true;
+	//Send_AT_Cmd(InWifi, "AT+GMR", "OK", NULL, 500);
+	while (cnt < 8)
+	{
+		cnt++;
+		if (WIFI_JoinAP(ParamsOfWifiJoinAPInit.ssid,
+				ParamsOfWifiJoinAPInit.pwd))
+		{
+			break;
+		}
+	}
+	if (cnt < 8)
+	{
+		WIFI_Enable_MultipleId(DISABLE);
+		while (!WIFI_Link_Server(enumTCP, addr, port, Single_ID_0))
+			;
+		while (!WIFI_UnvarnishSend())
+			;
+		return true;
+	}
+	return false;
+}
+
+void ReconnectByWifi(void)
+{
+	u8 res = 0;
+	WIFI_ExitUnvarnishSend(); //退出透传模式
+	do
+	{
+		res = WIFI_Get_LinkStatus();  //获取连接状态
+	} while (!res);
+
+	if (res == 4)         //确认失去连接后重连
+	{
+		wifiPowerOn();
+	}
+	WIFI_UnvarnishSend();
 }

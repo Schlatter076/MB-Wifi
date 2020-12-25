@@ -6,8 +6,8 @@
  */
 #include "STMFlash.h"
 
-char *WDeviceID = NULL;
-char RDeviceID[9] = {0};
+__IO char *WDeviceID = NULL;
+__IO char RDeviceID[9] = {0};
 
 char *WVersion = NULL;
 char RVersion[21] = {0};
@@ -195,10 +195,13 @@ void ReadWifiPwd(void)
 
 void WriteWifiFlag(void)
 {
-	STMFLASH_Write(WIFI_FLAG_ADDR, (u16 *) 0x5746, 1);
+	u16 flag = 0x5746;
+	STMFLASH_Write(WIFI_FLAG_ADDR, &flag, 1);
 }
 
-void ReadWifiFlag(u16 *flag)
+u16 ReadWifiFlag(void)
 {
-	STMFLASH_Read(WIFI_FLAG_ADDR, flag, 1);
+	u16 flag = 0;
+	STMFLASH_Read(WIFI_FLAG_ADDR, &flag, 1);
+	return flag;
 }

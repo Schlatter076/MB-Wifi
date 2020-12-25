@@ -10,6 +10,7 @@
 
 #include "tcp_public.h"
 #include <stdlib.h>
+#include "tcp_process.h"
 
 #define WIFI_CH_PD_Pin     GPIO_Pin_9
 #define WIFI_CH_PD_Pin_Port     GPIOC
@@ -26,21 +27,20 @@
 
 #define WIFI_USART(fmt, ...)	 _USART_printf (UART4, fmt, ##__VA_ARGS__)
 
-extern volatile u16 UART4_Read_len;
-
 void UART4_Init(u32 bound);
 void WIFI_Init(u32 bound);
 bool WIFI_Net_Mode_Choose(ENUM_Net_ModeTypeDef enumMode);
 bool WIFI_JoinAP(char * pSSID, char * pPassWord);
 bool WIFI_Enable_MultipleId(FunctionalState enumEnUnvarnishTx);
-bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, int ComNum, ENUM_ID_NO_TypeDef id);
+bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, char* ComNum, ENUM_ID_NO_TypeDef id);
 bool WIFI_UnvarnishSend(void);
 bool WIFI_SendString(FunctionalState enumEnUnvarnishTx, char * pStr, u32 ulStrLength, ENUM_ID_NO_TypeDef ucId);
 void WIFI_ExitUnvarnishSend(void);
 u8 WIFI_Get_LinkStatus(void);
+bool ConnectToServerByWIFI(char* addr, char* port);
 
-
-bool ConnectToServerByWIFI(char* addr, int port);
-void MQTTsendByWIFI(unsigned char *data, int len);
+void wifiPowerOn(void);
+void wifi_callback(void);
+void ReconnectByWifi(void);
 
 #endif /* _WIFI_H_ */

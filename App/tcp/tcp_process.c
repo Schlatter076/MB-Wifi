@@ -6,23 +6,33 @@
  */
 #include "tcp_process.h"
 
-ParamsOfWifiJoinAP_TypeDef ParamsOfWifiJoinAPInit = { 0 };
+ParamsOfWifiJoinAP_TypeDef ParamsOfWifiJoinAPInit =
+{ 0 };
 
-const char *heart = "{(}";
+const char heart[] = "{(}";
 
 /**
  * 透传模式下发送字符串
  * @USARTx 串口
  * @str 待发送的字符串
  */
-void TCP_sendStr(USART_TypeDef* USARTx, char *str) {
+void TCP_sendStr(USART_TypeDef* USARTx, char *str)
+{
 	u8 i = 0;
 	char *cmd = mymalloc(200);
 	char *base64Str = mymalloc(200);
-	printf("%s\r\n", str);
+	if(USARTx == USART2)
+	{
+		printf("<<%s\r\n", str);
+	}
+	else
+	{
+		printf("Wifi<<%s\r\n", str);
+	}
 	base64_encode((const unsigned char *) str, base64Str);
 	snprintf(cmd, 200, "{(%s}", base64Str);
-	while (cmd[i] != '}') {
+	while (cmd[i] != '}')
+	{
 		USART_SendData(USARTx, cmd[i]);
 		while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET)
 			;
@@ -42,20 +52,23 @@ void TCP_sendStr(USART_TypeDef* USARTx, char *str) {
  * @Powj_Init 包含ssid和pwd的结构体
  * 无返回
  */
-void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init) {
+void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
+{
 	char *res = datas;
 	u8 Inx = 0;
 	char *buf = mymalloc(3);
 	u16 ssidLEN = 0;
 	u16 pwdLEN = 0;
-	while (*res != '_' && Inx < 3) {
+	while (*res != '_' && Inx < 3)
+	{
 		buf[Inx++] = *res++;
 	}
 	res++;
 	ssidLEN = atoi(buf);
 	Inx = 0;
 	buf = myrealloc(buf, 3);
-	while (*res != '_' && Inx < 3) {
+	while (*res != '_' && Inx < 3)
+	{
 		buf[Inx++] = *res++;
 	}
 	res++;
@@ -63,12 +76,14 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init) {
 	memset(Powj_Init->ssid, 0, 100);
 	memset(Powj_Init->pwd, 0, 100);
 	Inx = 0;
-	while (ssidLEN--) {
+	while (ssidLEN--)
+	{
 		Powj_Init->ssid[Inx++] = *res++;
 	}
 	res++;
 	Inx = 0;
-	while (pwdLEN--) {
+	while (pwdLEN--)
+	{
 		Powj_Init->pwd[Inx++] = *res++;
 	}
 	myfree(buf);
@@ -87,7 +102,8 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init) {
  */
 void getRegisterStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
 		struct STRUCT_USART_Params *params, char moduleType, char *version,
-		char *num) {
+		char *num)
+{
 	const char* template = "%s,%d,%s-%c-%c-%s-%s_%s-%s";
 	ReadDeviceID();
 	snprintf(strBuf, len, template, RDeviceID, upCMD, params->ccid,
@@ -101,7 +117,8 @@ void getRegisterStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
  * @upCMD 上行控制字
  * 无返回
  */
-void getRequestStrWithoutParam(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD) {
+void getRequestStrWithoutParam(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD)
+{
 	const char* template = "%s,%d";
 	ReadDeviceID();
 	snprintf(strBuf, len, template, RDeviceID, upCMD);
@@ -117,12 +134,14 @@ void getRequestStrWithoutParam(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD) 
  * 无返回
  */
 void getPowerbankSTAStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
-		u8 rssi, int portNum, char *portSTAStr, ...) {
+		u8 rssi, int portNum, char *portSTAStr, ...)
+{
 	va_list ap;
 	va_start(ap, portSTAStr);
 	ReadDeviceID();
 	snprintf(strBuf, len, "%s,%d,%s", RDeviceID, upCMD, portSTAStr);
-	for (int i = 1; i < portNum; i++) {
+	for (int i = 1; i < portNum; i++)
+	{
 		char *tem = va_arg(ap, char *);
 		strcat(strBuf, "-");
 		strcat(strBuf, tem);
@@ -145,12 +164,14 @@ void getPowerbankSTAStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
  * 无返回
  */
 void getPowerbankSTAStrWithoutRSSI(char *strBuf, int len,
-		ENUM_tcpUP_TypeDef upCMD, int portNum, char *portSTAStr, ...) {
+		ENUM_tcpUP_TypeDef upCMD, int portNum, char *portSTAStr, ...)
+{
 	va_list ap;
 	va_start(ap, portSTAStr);
 	ReadDeviceID();
 	snprintf(strBuf, len, "%s,%d,%s", RDeviceID, upCMD, portSTAStr);
-	for (int i = 1; i < portNum; i++) {
+	for (int i = 1; i < portNum; i++)
+	{
 		char *tem = va_arg(ap, char *);
 		strcat(strBuf, "-");
 		strcat(strBuf, tem);
@@ -166,9 +187,12 @@ void getPowerbankSTAStrWithoutRSSI(char *strBuf, int len,
  * 无返回
  */
 void ProcessServerCmd(ENUM_Internet_TypeDef internet,
-		struct STRUCT_USART_Fram *fram, struct STRUCT_USART_Params *params) {
-	switch (atoi((const char *) fram->Server_Command[1])) {
+		struct STRUCT_USART_Fram *fram, struct STRUCT_USART_Params *params)
+{
+	switch (atoi((const char *) fram->Server_Command[1]))
+	{
 	case DOWN_RegiseterSucc:
+		F4G_Fram.allowHeart = 1;
 		getRegisterParams(fram);
 		break;
 	case DOWN_RecivedAllPortsSTA:
@@ -191,9 +215,12 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 
 		break;
 	case DOWN_VoiceBroadcast:
-		if (atoi((const char *) fram->ServerData) == 1) {
+		if (atoi((const char *) fram->ServerData) == 1)
+		{
 			play_audio(2); //租借成功
-		} else if (atoi((const char *) fram->ServerData) == 2) {
+		}
+		else if (atoi((const char *) fram->ServerData) == 2)
+		{
 			play_audio(3); //归还成功
 		}
 		break;
@@ -216,10 +243,15 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 		modifyLockSTA(fram);
 		break;
 	case DOWN_SetWifiSsidAndPwd:
-
+		setWifiSsidAndPwd(internet, fram);
+		break;
+	case DOWN_SetID:
+		WDeviceID = (char *) fram->ServerData;
+		WriteDeviceID();
+		NVIC_SystemReset();
 		break;
 	default:
-		//printf("cmd\"%s\" is not support\r\n", fram->Server_Command[1]);
+		printf("cmd\"%s\" is not support\r\n", fram->Server_Command[1]);
 		break;
 	}
 }
@@ -231,13 +263,15 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
  * 无返回
  */
 void systemPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
-		struct STRUCT_USART_Params *params) {
+		struct STRUCT_USART_Params *params)
+{
 	char *buf = mymalloc(100);
 	char *tem = strtok((char *) fram->ServerData, "-");
 	params->port = atoi(tem);
 	tem = strtok(NULL, "-");
 	params->play = (u8) atoi(tem);
-	if (curPort != params->port) {
+	if (curPort != params->port)
+	{
 		curPort = params->port;
 		popUP_powerBank(params->port + 1, params->play);
 		params->statuCode[params->port] = checkPowerbankStatus(params->port,
@@ -245,9 +279,12 @@ void systemPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
 		getPowerbankSTAStrWithoutRSSI(buf, 100, UP_SystemPopupSTA, 1,
 				powerbankStatu.powerBankBuf[params->port]);
 
-		if (internet == In4G) {
+		if (internet == In4G)
+		{
 			TCP_sendStr(USART2, buf);
-		} else {
+		}
+		else
+		{
 			TCP_sendStr(UART4, buf);
 		}
 		allowTCSamePort = 1;
@@ -264,7 +301,8 @@ void systemPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
  * 无返回
  */
 void orderPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
-		struct STRUCT_USART_Params *params) {
+		struct STRUCT_USART_Params *params)
+{
 	char *buf = mymalloc(100);
 	char *tem = strtok((char *) fram->ServerData, "-");
 	params->port = atoi(tem);
@@ -272,7 +310,8 @@ void orderPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
 	strcpy(params->dd, tem);
 	tem = strtok(NULL, "-");
 	params->play = (u8) atoi(tem);
-	if (curPort != params->port) {
+	if (curPort != params->port)
+	{
 		curPort = params->port;
 		popUP_powerBank(params->port + 1, params->play);
 		params->statuCode[params->port] = checkPowerbankStatus(params->port,
@@ -280,9 +319,12 @@ void orderPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
 		getPowerbankSTAStrWithoutRSSI(buf, 100, UP_OrderPopupPowerbank, 2,
 				powerbankStatu.powerBankBuf[params->port], params->dd);
 
-		if (internet == In4G) {
+		if (internet == In4G)
+		{
 			TCP_sendStr(USART2, buf);
-		} else {
+		}
+		else
+		{
 			TCP_sendStr(UART4, buf);
 		}
 		allowTCSamePort = 1;
@@ -294,7 +336,8 @@ void orderPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
  * @fram 数据帧结构体
  * 无返回
  */
-void modifyLockSTA(struct STRUCT_USART_Fram *fram) {
+void modifyLockSTA(struct STRUCT_USART_Fram *fram)
+{
 	//修改忽略某卡口锁异常状态
 	//接口参数：卡口_状态（1表示写死，0表示正常读取
 	char *tem = strtok((char *) fram->ServerData, "-");
@@ -306,31 +349,41 @@ void modifyLockSTA(struct STRUCT_USART_Fram *fram) {
 /**
  * 普通心跳
  */
-void commonHeart(USART_TypeDef* USARTx) {
-	while (*heart != '}') {
-		USART_SendData(USARTx, *heart);
+void commonHeart(USART_TypeDef* USARTx)
+{
+	if (USARTx == USART2)
+	{
+		F4G_Fram.serverStatuCnt++;
+	}
+	else if(USARTx == UART4)
+	{
+		WIFI_Fram.serverStatuCnt++;
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		USART_SendData(USARTx, heart[i]);
 		while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET)
 			;
-		heart++;
 	}
-	USART_SendData(USARTx, *heart);
-	while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET)
-		;
 }
 /**
  * 强制心跳
  */
 void forceHeart(ENUM_Internet_TypeDef internet,
-		struct STRUCT_USART_Params *params, ENUM_tcpUP_TypeDef upCmd) {
+		struct STRUCT_USART_Params *params, ENUM_tcpUP_TypeDef upCmd)
+{
 	char *buf = mymalloc(200);
 	getPowerbankSTAStr(buf, 200, upCmd, params->rssi, 6,
 			powerbankStatu.powerBankBuf[0], powerbankStatu.powerBankBuf[1],
 			powerbankStatu.powerBankBuf[2], powerbankStatu.powerBankBuf[3],
 			powerbankStatu.powerBankBuf[4], powerbankStatu.powerBankBuf[5]);
 
-	if (internet == In4G) {
+	if (internet == In4G)
+	{
 		TCP_sendStr(USART2, buf);
-	} else {
+	}
+	else
+	{
 		TCP_sendStr(UART4, buf);
 	}
 	myfree(buf);
@@ -338,7 +391,8 @@ void forceHeart(ENUM_Internet_TypeDef internet,
 /**
  * 响应系统重启
  */
-void responseReset(void) {
+void responseReset(void)
+{
 	char *buf = mymalloc(20);
 	getRequestStrWithoutParam(buf, 20, UP_DeviceRest);
 	myfree(buf);
@@ -347,17 +401,19 @@ void responseReset(void) {
 /**
  * 上报当前卡口状态变化
  */
-void reportPortStatuChanged(u8 port, USART_TypeDef* USARTx) {
-	char *buf = mymalloc(30);
-	getPowerbankSTAStrWithoutRSSI(buf, 30, UP_PowerbankSTAChanged, 2,
-			powerbankStatu.powerBankBuf[port], "aaaaa");
+void reportPortStatuChanged(u8 port, USART_TypeDef* USARTx)
+{
+	char *buf = mymalloc(50);
+	getPowerbankSTAStrWithoutRSSI(buf, 50, UP_PowerbankSTAChanged, 1,
+			powerbankStatu.powerBankBuf[port]);
 	TCP_sendStr(USARTx, buf);
 	myfree(buf);
 }
 /**
  * 请求注册
  */
-void request4Register(USART_TypeDef* USARTx) {
+void request4Register(USART_TypeDef* USARTx)
+{
 	char *buf = mymalloc(100);
 	ReadVersion();
 	getRegisterStr(buf, 100, UP_Regiser, &TCP_Params, '2', RVersion, "06");
@@ -367,21 +423,33 @@ void request4Register(USART_TypeDef* USARTx) {
 /**
  * 设置wifi名和密码
  */
-void setWifiSsidAndPwd(USART_TypeDef* USARTx, struct STRUCT_USART_Fram *fram) {
+void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet,
+		struct STRUCT_USART_Fram *fram)
+{
 	char *buf = mymalloc(100);
 	getWifiSsidAndPwd((char *) fram->ServerData, &ParamsOfWifiJoinAPInit);
 	getPowerbankSTAStrWithoutRSSI(buf, 100, UP_SetWifiSsidAndPwd, 1,
 			(char *) fram->ServerData);
-	TCP_sendStr(USARTx, buf);
+
+	if (internet == In4G)
+	{
+		TCP_sendStr(USART2, buf);
+	}
+	else
+	{
+		TCP_sendStr(UART4, buf);
+	}
 	myfree(buf);
 	WriteWifiFlag();
 	WriteWifiSsid();
 	WriteWifiPwd();
+	TCP_Params.wifiParamModified = 1;
 }
 /**
  * 获取注册参数
  */
-void getRegisterParams(struct STRUCT_USART_Fram *fram) {
+void getRegisterParams(struct STRUCT_USART_Fram *fram)
+{
 	char *tem = (char *) fram->ServerData;
 	tem = strtok((char *) fram->ServerData, "_");
 	RegisterParams.heartTime = atoi(tem);
