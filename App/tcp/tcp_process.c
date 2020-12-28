@@ -21,7 +21,7 @@ void TCP_sendStr(USART_TypeDef* USARTx, char *str)
 	u8 i = 0;
 	char *cmd = mymalloc(200);
 	char *base64Str = mymalloc(200);
-	if(USARTx == USART2)
+	if (USARTx == USART2)
 	{
 		printf("<<%s\r\n", str);
 	}
@@ -56,7 +56,8 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
 {
 	char *res = datas;
 	u8 Inx = 0;
-	char *buf = mymalloc(3);
+	char buf[4] =
+	{ '\0', '\0', '\0', '\0' };
 	u16 ssidLEN = 0;
 	u16 pwdLEN = 0;
 	while (*res != '_' && Inx < 3)
@@ -65,16 +66,18 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
 	}
 	res++;
 	ssidLEN = atoi(buf);
+	printf("ssid_len=%d,", ssidLEN);
 	Inx = 0;
-	buf = myrealloc(buf, 3);
+	memset(buf, '\0', 4);
 	while (*res != '_' && Inx < 3)
 	{
 		buf[Inx++] = *res++;
 	}
 	res++;
 	pwdLEN = atoi(buf);
-	memset(Powj_Init->ssid, 0, 100);
-	memset(Powj_Init->pwd, 0, 100);
+	printf("pwd_len=%d,", pwdLEN);
+	memset(Powj_Init->ssid, '\0', 100);
+	memset(Powj_Init->pwd, '\0', 100);
 	Inx = 0;
 	while (ssidLEN--)
 	{
@@ -86,7 +89,7 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
 	{
 		Powj_Init->pwd[Inx++] = *res++;
 	}
-	myfree(buf);
+	printf("SSID=%s,PWD=%s\r\n", Powj_Init->ssid, Powj_Init->pwd);
 }
 
 /**
@@ -355,7 +358,7 @@ void commonHeart(USART_TypeDef* USARTx)
 	{
 		F4G_Fram.serverStatuCnt++;
 	}
-	else if(USARTx == UART4)
+	else if (USARTx == UART4)
 	{
 		WIFI_Fram.serverStatuCnt++;
 	}
