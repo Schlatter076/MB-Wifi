@@ -250,6 +250,9 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 		WriteDeviceID();
 		NVIC_SystemReset();
 		break;
+	case DOWN_RemoteCtrMotor:
+		setMotorRun(fram);
+		break;
 	default:
 		printf("cmd\"%s\" is not support\r\n", fram->Server_Command[1]);
 		break;
@@ -481,4 +484,19 @@ void getRegisterParams(struct STRUCT_USART_Fram *fram)
 	printf("ht=%d,sht=%d\r\n", RegisterParams.heartTime,
 			RegisterParams.statuHeartTime);
 	fram->registerSuccess = 1;
+}
+/**
+ * 远程控制电机转动
+ */
+void setMotorRun(struct STRUCT_USART_Fram *fram)
+{
+	char *ptr = NULL;
+	u16 kk, gtime, ktime;
+	ptr = strtok((char *) fram->ServerData, "-");
+	kk = atoi(ptr);
+	ptr = strtok(NULL, "-");
+	gtime = atoi(ptr);
+	ptr = strtok(NULL, "-");
+	ktime = atoi(ptr);
+	remoteCtrMotot(kk, gtime, ktime);
 }

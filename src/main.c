@@ -102,8 +102,8 @@ int main(void)
 {
 	RCC_HSEConfig(RCC_HSE_OFF);     //关闭外部晶振源
 	HSI_SetSysClock(RCC_PLLMul_9);
-	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x10000);
-	__enable_irq(); //开启总中断
+//	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x10000);
+//	__enable_irq(); //开启总中断
 	SysTick_Init(36);
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  //中断优先级分组 分2组S
 	my_mem_init(); //内存管理初始化

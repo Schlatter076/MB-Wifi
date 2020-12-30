@@ -16,14 +16,17 @@
 #define FORWARD  1
 #define BACKWARD 0
 
+//切换电机方案用
+#define MOTOR_CTR_1V2  1u
+
 extern volatile u8 motor_running;
 
 void Init_Motor(void);
-void motor_reset(void);
 void motor_run(u8 mot, u8 dir);
 void motor_stop(u8 mot);
 u8 IsMotorArravalsOrigin(u8 mot);
 void popUP_powerBank(u8 powerBank, u8 play);
 void popUP_All(void);
+void remoteCtrMotot(u8 powerBank, u16 gtime, u16 ktime);
 
 #endif /* MOTOR_MOTOR_H_ */
