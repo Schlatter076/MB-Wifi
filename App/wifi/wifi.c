@@ -344,11 +344,12 @@ bool ConnectToServerByWIFI(char* addr, char* port)
 	if (cnt < 8)
 	{
 		WIFI_Enable_MultipleId(DISABLE);
-		while (!WIFI_Link_Server(enumTCP, addr, port, Single_ID_0))
-			;
-		while (!WIFI_UnvarnishSend())
-			;
-		return true;
+		if (WIFI_Link_Server(enumTCP, addr, port, Single_ID_0))
+		{
+			while (!WIFI_UnvarnishSend())
+				;
+			return true;
+		}
 	}
 	return false;
 }
