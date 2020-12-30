@@ -11,8 +11,10 @@
 #include "bit_band.h"
 #include "STMFlash.h"
 #include "tcp_public.h"
+#include "tcp_process.h"
 
 void USART1_Init(u32 bound);
+void usart1_callback(void);
 u8 hexStr2Byte(char *hexStr);
 
 #endif /* USART_H_ */

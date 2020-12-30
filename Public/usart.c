@@ -103,151 +103,60 @@ void USART1_Init(u32 bound)
  * 输    入         : 无
  * 输    出         : 无
  *******************************************************************************/
-char usart1TestBuf[18] =
-{ 0 };
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
-	u8 r;
-	char *res = NULL;
-	u8 mot = 0;
-	char buf[128];
+	u8 ucCh;
 	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断
 	{
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-		r = USART_ReceiveData(USART1);  //(USART1->DR);	//读取接收到的数据
+		ucCh = USART_ReceiveData(USART1);  //(USART1->DR);	//读取接收到的数据
 		if (USART1_Fram.InfBit.Length < (TCP_MAX_LEN - 1))
 		{
-			USART1_Fram.Data[USART1_Fram.InfBit.Length++] =
-					r;
+			USART1_Fram.Data[USART1_Fram.InfBit.Length++] = ucCh;
 		}
-		if (r == ']')
+		else
 		{
-			WDeviceID = strtok((char *)USART1_Fram.Data, "]");
-			printf("write DeviceID=%s\r\n", WDeviceID);
-			STMFLASH_Write(EEPROM_ADDR, (u16 *) WDeviceID, 8);
-//			STMFLASH_Read(EEPROM_ADDR, (u16 *) RDeviceID, 8);
-//			printf("成功写入设备编号:%s\r\n", RDeviceID);
-			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
+			memset(USART1_Fram.Data, 0, TCP_MAX_LEN);
+			USART1_Fram.InfAll = 0;
 		}
-		else if (r == '$')
+		//收到服务器端发回的数据
+		if (ucCh == ']' && (bool) strchr((const char *) USART1_Fram.Data, '['))
 		{
-			res = strtok((char *)USART1_Fram.Data, "$");
-			Send_AT_Cmd(In4G, res, "OK", NULL, 500);
-			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
+			usart1_callback();
 		}
-		else if(r == '~')
-		{
-			//http://119.23.38.148/
-			res = strtok((char *)USART1_Fram.Data, "~");
-			WriteAPPServer(res);
-		}
-		else if (r == '#')
-		{
-			res = strtok((char *)USART1_Fram.Data, "#");
-			controlPowerbank(hexStr2Byte(res));
-			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
-		}
-		else if (r == '%')
-		{
-			res = strtok((char *)USART1_Fram.Data, "%");
-			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
-			if (*res == 'l') //亮某个灯
-			{
-				mot = *(res + 1) - 0x30;
-				ledON(mot);
-			}
-			else if (*res == 'd') //灭某个灯
-			{
-				mot = *(res + 1) - 0x30;
-				ledOFF(mot);
-			}
-			else if (*res == 'a') //直接操作全部
-			{
-				res++;
-				HC595_Send_Byte(hexStr2Byte(res));
-			}
-			else if (*res == 'u') //允许更新模块固件
-			{
-				allowModuleUpdate = 1;
-			}
-			else if (*res == 'c') //读取4G模块的信息
-			{
-				allowModuleUpdate = 0;
-			}
-			else if (*res == 'r') //读取4G模块的信息
-			{
-				PC_USART("%s", F4G_Fram.Data);
-				F4G_Fram.InfBit.Length = 0;
-				memset(F4G_Fram.Data, '\0', TCP_MAX_LEN);
-			}
-		}
-		else if (r == '@')
-		{
-			res = strtok((char *)USART1_Fram.Data, "@");
-			USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
-			if (*res == 't')
-			{
-				mot = *(res + 1) - 0x30;
-				printf("Trig the Audio_%d.\r\n", mot);
-				play_audio(mot);
-			}
-			else if (*res == '&')
-			{
-				res++;
-				checkPowerbankStatus((u8) atoi(res) - 1, usart1TestBuf);
-				//communicationTest(atoi(res) - 1);
-				USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
-			}
-			else if (*res == 'e')
-			{
-				F4G_ExitUnvarnishSend();
-			}
-			else if (*res == 's')
-			{
-				res++;
-				base64_encode((const unsigned char *) res, buf);
-				TCP_sendStr(USART2, buf);
-			}
-			else if (*res == 'f')
-			{
-				mot = *(res + 1) - 0x30;
-				printf("now motor forward=%d\r\n", mot);
-				motor_run(mot, FORWARD);
-			}
-			else if (*res == 'b')
-			{
-				mot = *(res + 1) - 0x30;
-				printf("now motor backward=%d\r\n", mot);
-				motor_run(mot, BACKWARD);
-			}
-			else if (*res == 'p')
-			{
-				mot = *(res + 1) - 0x30;
-				printf("now motor stop=%d\r\n", mot);
-				motor_stop(mot);
-			}
-			else if (*res == 'r')
-			{
-				STMFLASH_Read(EEPROM_ADDR, (u16 *) RDeviceID, 8);
-				printf("read DeviceID=%s\r\n", RDeviceID);
-				USART1_Fram.InfBit.Length = 0; //重新开始接收新数据
-			}
-			else if (*res == 'x')
-			{
-				printf("now Exchange TX3_RX3\r\n");
-				TX3_RX3_Exchange;
-			}
-			else if (*res == 'y')
-			{
-				mot = *(res + 1) - 0x30;
-				communicateWithPort(mot);
-			}
-		}
+
 	}
 	if (USART_GetFlagStatus(USART1, USART_FLAG_ORE) != RESET)
 	{
 		USART_ClearFlag(USART1, USART_FLAG_ORE);
 		USART_ReceiveData(USART1);
+	}
+}
+
+void usart1_callback(void)
+{
+	int DecryptionLen = 0; //排除空心跳
+	char *res = (char *) USART1_Fram.Data;
+	u16 deDataCnt = 0;
+	while (*res != '[')
+	{
+		res++;
+	}
+	while (*res == '[')
+		res++;
+
+	while(*res != ']')
+	{
+		DecryptionLen++;
+		USART1_Fram.DeData[deDataCnt++] = *res;
+		res++;
+	}
+	memset(USART1_Fram.Data, '\0', TCP_MAX_LEN);
+	USART1_Fram.InfBit.Length = 0;
+	if (DecryptionLen > 1)
+	{
+		mySplit(&USART1_Fram, ",");
+		TCP_Params.processUSART1 = 1;
 	}
 }
 

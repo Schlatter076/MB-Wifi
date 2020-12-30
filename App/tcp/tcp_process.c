@@ -66,7 +66,6 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
 	}
 	res++;
 	ssidLEN = atoi(buf);
-	printf("ssid_len=%d,", ssidLEN);
 	Inx = 0;
 	memset(buf, '\0', 4);
 	while (*res != '_' && Inx < 3)
@@ -75,7 +74,6 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
 	}
 	res++;
 	pwdLEN = atoi(buf);
-	printf("pwd_len=%d,", pwdLEN);
 	memset(Powj_Init->ssid, '\0', 100);
 	memset(Powj_Init->pwd, '\0', 100);
 	Inx = 0;
@@ -89,7 +87,6 @@ void getWifiSsidAndPwd(char *datas, ParamsOfWifiJoinAP_TypeDef *Powj_Init)
 	{
 		Powj_Init->pwd[Inx++] = *res++;
 	}
-	printf("SSID=%s,PWD=%s\r\n", Powj_Init->ssid, Powj_Init->pwd);
 }
 
 /**
@@ -231,7 +228,7 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 		forceHeart(internet, params, UP_ForceHeart);
 		break;
 	case DOWN_DeviceReset:
-		responseReset();
+		responseReset(internet);
 		break;
 	case DOWN_OrderPopupPowerbank:
 		orderPopup(internet, fram, params);
@@ -286,13 +283,16 @@ void systemPopup(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram,
 		{
 			TCP_sendStr(USART2, buf);
 		}
-		else
+		else if (internet == InWifi)
 		{
 			TCP_sendStr(UART4, buf);
 		}
+		else
+		{
+			printf("{%s}\r\n", buf);
+		}
 		allowTCSamePort = 1;
 	}
-
 	myfree(buf);
 }
 
@@ -385,19 +385,35 @@ void forceHeart(ENUM_Internet_TypeDef internet,
 	{
 		TCP_sendStr(USART2, buf);
 	}
-	else
+	else if (internet == InWifi)
 	{
 		TCP_sendStr(UART4, buf);
+	}
+	else
+	{
+		printf("{%s}\r\n", buf);
 	}
 	myfree(buf);
 }
 /**
  * 响应系统重启
  */
-void responseReset(void)
+void responseReset(ENUM_Internet_TypeDef internet)
 {
 	char *buf = mymalloc(20);
 	getRequestStrWithoutParam(buf, 20, UP_DeviceRest);
+	if (internet == In4G)
+	{
+		TCP_sendStr(USART2, buf);
+	}
+	else if (internet == InWifi)
+	{
+		TCP_sendStr(UART4, buf);
+	}
+	else
+	{
+		printf("{%s}\r\n", buf);
+	}
 	myfree(buf);
 	NVIC_SystemReset();
 }
@@ -438,9 +454,13 @@ void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet,
 	{
 		TCP_sendStr(USART2, buf);
 	}
-	else
+	else if (internet == InWifi)
 	{
 		TCP_sendStr(UART4, buf);
+	}
+	else
+	{
+		printf("{%s}\r\n", buf);
 	}
 	myfree(buf);
 	WriteWifiFlag();

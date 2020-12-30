@@ -82,7 +82,7 @@ void modifyLockSTA(struct STRUCT_USART_Fram *fram);
 void commonHeart(USART_TypeDef* USARTx);
 void forceHeart(ENUM_Internet_TypeDef internet,
 		struct STRUCT_USART_Params *params, ENUM_tcpUP_TypeDef upCmd);
-void responseReset(void);
+void responseReset(ENUM_Internet_TypeDef internet);
 void reportPortStatuChanged(u8 port, USART_TypeDef* USARTx);
 void request4Register(USART_TypeDef* USARTx);
 void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, struct STRUCT_USART_Fram *fram);

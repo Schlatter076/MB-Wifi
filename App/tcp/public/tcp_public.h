@@ -65,6 +65,7 @@ extern struct STRUCT_USART_Params
 	__IO u8 checkPBst;
 	__IO u8 process4G;
 	__IO u8 processWIFI;
+	__IO u8 processUSART1;
 	__IO u8 wifiParamModified;
 } TCP_Params;
 
@@ -87,7 +88,7 @@ typedef enum
 
 typedef enum
 {
-	enumTCP, enumUDP,
+	enumTCP, enumUDP
 } ENUM_NetPro_TypeDef;
 
 typedef enum
@@ -97,12 +98,12 @@ typedef enum
 	Multiple_ID_2 = 2,
 	Multiple_ID_3 = 3,
 	Multiple_ID_4 = 4,
-	Single_ID_0 = 5,
+	Single_ID_0 = 5
 } ENUM_ID_NO_TypeDef;
 
 typedef enum
 {
-	In4G = 1, InWifi = 2,
+	In4G = 1, InWifi = 2, InUsart1 = 3
 } ENUM_Internet_TypeDef;
 
 void _USART_printf(USART_TypeDef * USARTx, char * Data, ...);

@@ -46,6 +46,12 @@ void TIM5_IRQHandler(void)
 			TCP_Params.processWIFI = 0;
 			ProcessServerCmd(InWifi, &WIFI_Fram, &TCP_Params);
 		}
+		//´¦Àí´®¿Ú1
+		if (TCP_Params.processUSART1 == 1)
+		{
+			TCP_Params.processUSART1 = 0;
+			ProcessServerCmd(InUsart1, &USART1_Fram, &TCP_Params);
+		}
 		TIM_Cmd(TIM5, ENABLE);
 	}
 }
