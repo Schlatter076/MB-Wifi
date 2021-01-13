@@ -79,149 +79,11 @@ void motor_run(u8 mot, u8 dir)
  */
 void popUP_powerBank(u8 powerBank, u8 play)
 {
-	u16 cnt;
 	if (powerBank >= 1 && powerBank <= 6 && play)
 	{
 		play_audio(1);
 	}
-	switch (powerBank)
-	{
-		case 1:
-		PC_out(15) = 1;
-		PC_out(14) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-			if (!IsMotorArravalsOrigin(1))  //解锁成功
-			{
-				break;
-			}
-		}
-		PC_out(15) = 0;
-		PC_out(14) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-			if (IsMotorArravalsOrigin(1))
-			{
-				break;
-			}
-		}
-		break;
-		case 2:
-		PC_out(15) = 0;
-		PC_out(14) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-			if (!IsMotorArravalsOrigin(2))  //解锁成功
-			{
-				break;
-			}
-		}
-		PC_out(15) = 1;
-		PC_out(14) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-			if (IsMotorArravalsOrigin(2))
-			{
-				break;
-			}
-		}
-		break;
-		case 3:
-		PB_out(8) = 1;
-		PB_out(7) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-			if (!IsMotorArravalsOrigin(3))  //解锁成功
-			{
-				break;
-			}
-		}
-		PB_out(8) = 0;
-		PB_out(7) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-			if (IsMotorArravalsOrigin(3))  //解锁成功
-			{
-				break;
-			}
-		}
-		break;
-		case 4:
-		PB_out(8) = 0;
-		PB_out(7) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-			if (!IsMotorArravalsOrigin(4))  //解锁成功
-			{
-				break;
-			}
-		}
-		PB_out(8) = 1;
-		PB_out(7) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-			if (IsMotorArravalsOrigin(4))  //解锁成功
-			{
-				break;
-			}
-		}
-		break;
-		case 5:
-		PB_out(4) = 1;
-		PB_out(3) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-			if (!IsMotorArravalsOrigin(5))  //解锁成功
-			{
-				break;
-			}
-		}
-		PB_out(4) = 0;
-		PB_out(3) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-			if (IsMotorArravalsOrigin(5))  //解锁成功
-			{
-				break;
-			}
-		}
-		break;
-		case 6:
-		PB_out(4) = 0;
-		PB_out(3) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-			if (!IsMotorArravalsOrigin(6))  //解锁成功
-			{
-				break;
-			}
-		}
-		PB_out(4) = 1;
-		PB_out(3) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-			if (IsMotorArravalsOrigin(6))  //解锁成功
-			{
-				break;
-			}
-		}
-		break;
-		default:
-		break;
-	}
-	motor_stop(powerBank);
+	remoteCtrMotot(powerBank, RegisterParams.motor_TCtime, RegisterParams.motor_HTtime);
 }
 
 /**
@@ -406,101 +268,11 @@ void motor_run(u8 mot, u8 dir)
  */
 void popUP_powerBank(u8 powerBank, u8 play)
 {
-	u16 cnt;
 	if (powerBank >= 1 && powerBank <= 6 && play)
 	{
 		play_audio(1);
 	}
-	switch (powerBank)
-	{
-	case 1:
-		PC_out(15) = 1;
-		PC_out(14) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		PC_out(15) = 0;
-		PC_out(14) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		break;
-	case 2:
-		PC_out(13) = 1;
-		PB_out(9) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		PC_out(13) = 0;
-		PB_out(9) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		break;
-	case 3:
-		PB_out(8) = 1;
-		PB_out(7) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		PB_out(8) = 0;
-		PB_out(7) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		break;
-	case 4:
-		PB_out(6) = 1;
-		PB_out(5) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		PB_out(6) = 0;
-		PB_out(5) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		break;
-	case 5:
-		PB_out(4) = 1;
-		PB_out(3) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		PB_out(4) = 0;
-		PB_out(3) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		break;
-	case 6:
-		PD_out(2) = 1;
-		PC_out(12) = 0;
-		for (cnt = 0; cnt < RegisterParams.motor_TCtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		PD_out(2) = 0;
-		PC_out(12) = 1;
-		for (cnt = 0; cnt < RegisterParams.motor_HTtime; cnt++)
-		{
-			delay_ms(100);
-		}
-		break;
-	default:
-		break;
-	}
-	motor_stop(powerBank);
+	remoteCtrMotot(powerBank, RegisterParams.motor_TCtime, RegisterParams.motor_HTtime);
 }
 
 void remoteCtrMotot(u8 powerBank, u16 gtime, u16 ktime)
@@ -596,7 +368,6 @@ void remoteCtrMotot(u8 powerBank, u16 gtime, u16 ktime)
 		break;
 	}
 	motor_stop(powerBank);
-
 }
 
 void popUP_All(void)

@@ -103,7 +103,7 @@
 								<option id="com.atollic.truestudio.ld.optimization.do_garbage.1778074690" name="Dead code removal " superClass="com.atollic.truestudio.ld.optimization.do_garbage" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="com.atollic.truestudio.ld.misc.linkerflags.1121502744" name="Other options" superClass="com.atollic.truestudio.ld.misc.linkerflags" useByScannerDiscovery="false" value="-Wl,-cref,-u,Reset_Handler" valueType="string"/>
 								<option id="com.atollic.truestudio.ld.optimization.malloc_page_size.1956070200" name="Page size allocation for malloc() " superClass="com.atollic.truestudio.ld.optimization.malloc_page_size" useByScannerDiscovery="false" value="com.atollic.truestudio.ld.optimization.malloc_page_size.128" valueType="enumerated"/>
-								<option id="com.atollic.truestudio.ld.misc.genmapfile.1397263073" name="Create map file" superClass="com.atollic.truestudio.ld.misc.genmapfile"/>
+								<option id="com.atollic.truestudio.ld.misc.genmapfile.1397263073" name="Create map file" superClass="com.atollic.truestudio.ld.misc.genmapfile" useByScannerDiscovery="false"/>
 								<inputType id="com.atollic.truestudio.ld.input.397628263" name="Input" superClass="com.atollic.truestudio.ld.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

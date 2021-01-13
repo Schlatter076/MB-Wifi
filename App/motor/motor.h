@@ -17,7 +17,7 @@
 #define BACKWARD 0
 
 //切换电机方案用
-#define MOTOR_CTR_1V2  1u
+#define MOTOR_CTR_1V2  0u
 
 extern volatile u8 motor_running;
 
